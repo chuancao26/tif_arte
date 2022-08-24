@@ -9,7 +9,7 @@ AudioSample sonido_choque;
 AudioSample sonido_punto;
 int error = 0;
 boolean start_game = false;
-boolean game_over = true;
+boolean initial_status = true;
 bloque [] bloque = new bloque[3];
 pajaro pajaro = new pajaro();
 int puntaje = 0;
@@ -56,7 +56,7 @@ void draw(){
  } else{
      //los cuadros en los cuales se mostraeran en caso el juego no haya iniciado
      fill(255);
-     if(game_over == true){
+     if(initial_status == true){
        text("Flappy bird",width/2-40,height/2-50);
        puntaje_max = 0;
        //text("Click para jugar",155,240);
@@ -75,7 +75,7 @@ void draw(){
 // en primer lugar tenemos al pajarito, para lo cual crearemos una clase con este nombre 
 //este tendra como principales atributos, posx, posy y la velocidad a la cual decendera vely
 class pajaro{
-  float posx, posy, vely, size, puntaje, factor;
+  float posx, posy, vely, size, factor;
   PImage cuerpo;
   ///seteamos los valores iniciales de las posiciones x  e y 
   //elegimos tener una pantalla de 
@@ -83,7 +83,7 @@ class pajaro{
   pajaro(){
     posx = 270;
     posy = 960/2;
-    size = 50;
+    size = 40;
     vely = 0;
     factor = 0;
     //sonido_salto = minim.loadFile("SONIDO_SALTO.wav");
@@ -124,20 +124,16 @@ class pajaro{
      // los movimientos tienen que ser acompa;ados por los bloques, 
      //por lo cual vamos a setear su parametro con valores que se iran reduciendo en razon de 3.
       factor += .001;
+     //Para agregar dificultad, existe este la variable factor que ira incrementandose a razon de .001
       for (int i = 0; i<3 ; i++){
         bloque[i].posx -= 3 + factor;
-      
-        
      }
-     //Incrementaremos la dificultad agregando mas velocidad al juego en cuando pasemos de 10 en 10 de puntaje  
-     
- 
    }
      //Ahora evaluemos la reaccion del programa cuando hagamos algun movimiento mal
   void colision(){
     //1er movimiento malo
     //Si nuestro pajarito en su posicion y esta debajo de nuestra ventana de 960 entonces el jeugo habra acabado
-    if (posy >960){
+    if ((posy >960) & (initial_status == false)){
       start_game = false;
       error += 1;
     }
@@ -146,20 +142,14 @@ class pajaro{
     //Si nuestro pajario choca con los bordes de lo bloques de ancho 20 ya sea de los bloques arriba de la apertura asi como los que
     //estan debajo de esta
     for (int i = 0; i < 3; i++){
-
-      if(((posx<bloque[i].posx+40) & (posx>bloque[i].posx - 40))&((posy<=bloque[i].apertura - 110)|(posy>=bloque[i].apertura+70))){
+      if((initial_status == false) & ((posx>bloque[i].posx-40) & (posx<bloque[i].posx + 40))&((posy<=bloque[i].apertura - 110)|(posy>=bloque[i].apertura+70))){
         error += 1 ;
-      
         start_game = false; 
       }
-    
     }
-    if((error == 1) & (game_over == false)){
+    if((error == 1)){
       sonido_choque.trigger();
-
     }
- 
-    
   }
 }
 // ahora vamos a destart_gameir a la clase bloques, los cuals nos ayudaran a crear esta ilusion de movimiento
@@ -192,12 +182,11 @@ class bloque{
      if (posx<-30){
         posx = 720;
         apertura = random(100,700);
-       
         // la variable chekcer nos ayduara a que no haya contabilidad extra de los puntos 
         //de esta forma cada uno de los bloques valdra un punto
         checker = false;
        }
-      if ((posx < 270)&(checker == false)&(game_over == false)){
+      if ((posx < 270)&(checker == false)&(initial_status == false)){
         checker = true;
         sonido_punto.trigger();
         puntaje += 1;      
@@ -209,11 +198,14 @@ void reinicio(){
   start_game = true;
   error = 0;
   puntaje = 0;
+  //Para setear desde 0 el factor de dificultad y de sta forma no mantendra sus valores en el juego
   pajaro.factor = 0;
   pajaro.posy = height/2; // que es la posicion inicial central
   //tambien setearemos a valores iniciales a los 3 bloques 
   for (int i = 0; i < 3; i++){
-    bloque[i].posx += 550;
+    //incrementar las posx de aparicion en 540
+    bloque[i].posx += 540;
+    //Para que la nueva apertura sea otra vez random 
     bloque[i].apertura = random(700);
     bloque[i].checker = false;
   }
@@ -226,7 +218,7 @@ void mouseClicked(){
   sonido_salto.trigger();
   
   //pajaro.sonido_salto.play();
-  game_over = false;
+  initial_status = false;
   if (start_game == false ){
     reinicio();
 }
